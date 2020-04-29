@@ -228,6 +228,10 @@
          double cov = sxy / (double)n - sx * sy / (double)n / (double)n;
          double sigmax = Math.sqrt(sxx / (double)n - sx * sx / (double)n / (double)n);
          double sigmay = Math.sqrt(syy / (double)n - sy * sy / (double)n / (double)n);
+
+         if((cov / sigmax / sigmay) < 0){
+             System.out.println("here")
+         }
          return cov / sigmax / sigmay;
      }
  
