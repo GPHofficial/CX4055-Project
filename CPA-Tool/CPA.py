@@ -156,19 +156,23 @@ class CPA(object):
 
         x = []
         y = []
-        self.correlation = []
+        self.correlation = [[None for i in range(self.numberOfTracesPoint)] for j in range(256)]
+        temp = 0
 
         for count in range(0,256):
-            rowCorrelation = []
             y = []
+            rowCorrelation = []
             for j in range(0,self.numberOfTraces):
                 y.append(self.hypothesis[j][count] / 256.0)
             for i in range(0,self.numberOfTracesPoint):
                 x = []
                 for j in range(0,self.numberOfTraces):
                     x.append(self.traceMatrix[j][i])
-                rowCorrelation.append(self.Correlation(x,y))
-            self.correlation.append(rowCorrelation)
+                
+
+                self.correlation[count][i] = self.Correlation(x, y)
+                # rowCorrelation.append(self.Correlation(x,y))
+            # self.correlation.append(rowCorrelation)
 
 
 
@@ -232,12 +236,11 @@ class CPA(object):
 
     def initHypothesis_MCU8_AES128(self,byteNumber):
 
-        self.plainText
-        global hypothesis
-
-        keyHyp = [0] * 256
-        for i in range(0,255):
+        keyHyp = []
+        for i in range(0,256):
             keyHyp.append(i)
+
+        keyHyp[255] = 0
 
         self.hypothesis = []
 
@@ -245,7 +248,12 @@ class CPA(object):
             rowHypothesis = []
             P = self.plainText[i][2 * (byteNumber - 1): 2 * byteNumber]
             for j in range(0,len(keyHyp)):
-                rowHypothesis.append(self.HW(self.SBOX(self.hex2int(P) ^ keyHyp[j])))
+                # if j is 255:
+                #     print("hi")
+                temp1 = self.hex2int(P) ^ keyHyp[j]
+                temp2 = self.SBOX(temp1)
+                temp = self.HW(temp2)
+                rowHypothesis.append(temp)
             self.hypothesis.append(rowHypothesis)
 
 
@@ -268,8 +276,6 @@ class CPA(object):
         loc = 0
         for i in range(0,256):
             for j in range(0,self.numberOfTracesPoint):
-                if(i is not 0):
-                    print(self.correlation[i][j])
                 if not (self.correlation[i][j] > max):
                     continue
                 max = self.correlation[i][j]
@@ -299,8 +305,8 @@ class CPA(object):
         print("Running Analysis...")
         self.initTraceMatrix()
         start = time.process_time()
-        for i in range(1,2):
-        # for i in range(1,keysize + 1):
+        # for i in range(1,2):
+        for i in range(1,keysize + 1):
             self.initHypothesis_MCU8_AES128(i)
             self.findCorrelation()
             self.key[i - 1] = self.findKey()

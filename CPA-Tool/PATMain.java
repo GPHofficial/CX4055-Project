@@ -1,3 +1,4 @@
+
 /*
  * Decompiled with CFR 0.145.
  * 
@@ -11,19 +12,23 @@
  *  org.jfree.data.xy.XYSeriesCollection
  *  org.jfree.ui.ApplicationFrame
  */
- import java.awt.Component;
- import java.awt.Container;
- import java.awt.Dimension;
- import java.awt.event.ActionEvent;
- import java.awt.event.ActionListener;
- import java.io.BufferedReader;
- import java.io.File;
- import java.io.FileReader;
- import java.io.IOException;
- import java.io.PrintStream;
- import java.io.Reader;
- import java.util.HashMap;
- import java.util.logging.Logger;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
  
  public class PATMain {
      private static final long serialVersionUID = 1L;
@@ -43,6 +48,7 @@
      private int extraColRear;
      private String cipher;
      private String[] supportedCiphers = new String[]{"AES128"};
+     private FileWriter csvWriter;
  
      public PATMain() {
         this.plaintextCol = 0;
@@ -52,7 +58,9 @@
         LOGGER.info("Creating Trace object");
      }
  
-     public void init(File fileName) throws IOException {
+     public void init(File fileName, File correlationFile) throws IOException {
+
+         this.csvWriter = new FileWriter(correlationFile);
          LOGGER.info("Initializing Trace object");
          this.traceFile = fileName;
          this.br = new BufferedReader(new FileReader(this.traceFile));
@@ -129,7 +137,13 @@
          for (i = 0; i < this.plainText.length; ++i) {
              String P = this.plainText[i].substring(2 * (byteNumber - 1), 2 * byteNumber);
              for (int j = 0; j < keyHyp.length; ++j) {
-                 this.hypothesis[i][j] = this.HW(this.SBOX(this.hex2int(P) ^ keyHyp[j]));
+                 int temp1 = this.hex2int(P) ^ keyHyp[j];
+                 int temp2 = this.SBOX(temp1);
+                 int temp = this.HW(temp2);
+                 if(j == 255){
+                     System.out.println("x");
+                 }
+                 this.hypothesis[i][j] = temp;
              }
          }
      }
@@ -154,10 +168,7 @@
          double sigmax = Math.sqrt(sxx / (double)n - sx * sx / (double)n / (double)n);
          double sigmay = Math.sqrt(syy / (double)n - sy * sy / (double)n / (double)n);
         
-         double correlationValue = cov / sigmax / sigmay;
-         if(correlationValue < 0){
-             System.out.println("here");
-         }
+        //  double correlationValue = ;
 
          return cov / sigmax / sigmay;
      }
@@ -166,17 +177,45 @@
          this.cor = new double[256][this.numberOfTracePoints];
          double[] x = new double[this.numberOfTraces];
          double[] y = new double[this.numberOfTraces];
+         int i = 0;
          for (int count = 0; count <= 255; ++count) {
-             for (int j = 0; j < this.numberOfTraces; ++j) {
+             for (int j = 0; j < this.numberOfTraces; j++) {
                  y[j] = (double)this.hypothesis[j][count] / 256.0;
              }
-             for (int i = 0; i < this.numberOfTracePoints; ++i) {
+             for (i = 0; i < this.numberOfTracePoints; i++) {
+                // if(count == 1 && i == 0){
+                //     System.out.println("x");
+                // }
                  for (int j = 0; j < this.numberOfTraces; ++j) {
                      x[j] = this.traceMatrix[j][i];
                  }
+                 
                  this.cor[count][i] = this.Correlation(x, y);
              }
          }
+
+
+        
+
+        try{
+            for (int count = 0; count <= 255; ++count) {
+                List<String> stringArray = doubleArrayToStringArray(this.cor[count], this.numberOfTracePoints);
+                csvWriter.append(String.join(",", stringArray));
+                csvWriter.append("\n");
+            }
+            csvWriter.flush();
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+     }
+
+     public List<String> doubleArrayToStringArray(double[] doubleArray,int range){
+         List<String> stringArray = new ArrayList<String>();
+         for(int i = 0;i<range;++i){
+            // stringArray.add(Double.toString(doubleArray[i]));
+            stringArray.add(String.format("%.5f", doubleArray[i]));
+         }
+         return stringArray;
      }
  
      public int findKey() {
@@ -216,13 +255,18 @@
          HashMap<Object, Object> retVal = new HashMap<Object, Object>();
          retVal.put("key", strkey);
          retVal.put("time", timetaken);
+
+         csvWriter.close();
+
          return retVal;
      }
  
      public static void main(String[] args) throws IOException {
         PATMain ob = new PATMain();
-        File file = new File("input/waveform.csv");
-        ob.init(file);
+        String filename = "waveform.csv";
+        File file = new File("input/" + filename);
+        File debugFile = new File("intermediate/" + filename);
+        ob.init(file, debugFile);
         HashMap<Object, Object> values = ob.CPA(16);
         System.out.println("\n***********************************************\n");
         System.out.println("Obtained key: " + values.get("key").toString() + "\n");

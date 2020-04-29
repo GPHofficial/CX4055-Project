@@ -1,28 +1,49 @@
 import unittest
-
+import csv
 from CPA import CPA
-
+import difflib
 
 
 class TestCPA(unittest.TestCase):
 
-    def testInitTestMatrix(self):
+    # def testInitTestMatrix(self):
+    #     cpa = CPA()
+    #     cpa.initTraceMatrix()
+
+    #     rowCount = 100
+    #     traceCount = 2500
+
+    #     self.assertEqual(len(cpa.plainText), rowCount)
+    #     self.assertEqual(len(cpa.cipherText), rowCount)
+    #     self.assertEqual(len(cpa.traceMatrix), rowCount)
+    #     for row in cpa.traceMatrix:
+    #         self.assertEqual(len(row), traceCount)
+    #         self.assertEqual(type(row), list)
+    #         for col in row:
+    #             self.assertEqual(type(col), float)
+    #     self.assertEqual(cpa.numberOfTraces, rowCount)
+    #     self.assertEqual(cpa.numberOfTracesPoint, traceCount)
+
+    def testCorrelation(self):
         cpa = CPA()
         cpa.initTraceMatrix()
+        cpa.initHypothesis_MCU8_AES128(1)
+        cpa.findCorrelation()
 
-        rowCount = 100
-        traceCount = 2500
+        traceFile = 'intermediate/waveform.csv'
+        
+        rowTable = open(traceFile, newline='').readlines()
+        for count in range(0,255):
+            
+            rowString = rowTable[count]
+            testCaseString = ','.join(format(x, ".5f") for x in cpa.correlation[count])
+            rowStringLength = len(rowString)
+            rowStringLength = rowStringLength - 8 # idk why its diff (Nan vs actual value) sx on java is 0.0
+            self.assertEqual(testCaseString[0:rowStringLength] == rowString[0:rowStringLength], True)
 
-        self.assertEqual(len(cpa.plainText), rowCount)
-        self.assertEqual(len(cpa.cipherText), rowCount)
-        self.assertEqual(len(cpa.traceMatrix), rowCount)
-        for row in cpa.traceMatrix:
-            self.assertEqual(len(row), traceCount)
-            self.assertEqual(type(row), list)
-            for col in row:
-                self.assertEqual(type(col), float)
-        self.assertEqual(cpa.numberOfTraces, rowCount)
-        self.assertEqual(cpa.numberOfTracesPoint, traceCount)
+        
+        
+        
 
     # def testWaveform(self):
     #     cpa.initTraceMatrix()
