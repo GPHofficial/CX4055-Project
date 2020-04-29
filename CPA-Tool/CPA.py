@@ -5,8 +5,8 @@ import math
 
 class CPA(object):
 
-    cipherTextCol = 0
-    plainTextCol = 1
+    cipherTextCol = 1
+    plainTextCol = 0
     extraColFront = 2
     extraColRear = 0
     cipher = 'AES128'

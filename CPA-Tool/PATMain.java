@@ -11,8 +11,6 @@
  *  org.jfree.data.xy.XYSeriesCollection
  *  org.jfree.ui.ApplicationFrame
  */
- package pat;
-
  import java.awt.Component;
  import java.awt.Container;
  import java.awt.Dimension;
@@ -26,18 +24,8 @@
  import java.io.Reader;
  import java.util.HashMap;
  import java.util.logging.Logger;
- import javax.swing.JButton;
- import org.jfree.chart.ChartFactory;
- import org.jfree.chart.ChartPanel;
- import org.jfree.chart.JFreeChart;
- import org.jfree.chart.plot.PlotOrientation;
- import org.jfree.data.xy.XYDataset;
- import org.jfree.data.xy.XYSeries;
- import org.jfree.data.xy.XYSeriesCollection;
- import org.jfree.ui.ApplicationFrame;
  
- public class PATMain
- extends ApplicationFrame {
+ public class PATMain {
      private static final long serialVersionUID = 1L;
      private static final Logger LOGGER = Logger.getLogger(PATMain.class.getName());
      private int numberOfTraces = 0;
@@ -56,45 +44,12 @@
      private String cipher;
      private String[] supportedCiphers = new String[]{"AES128"};
  
-     public PATMain(String title) {
-         super(title);
-         XYSeries series = new XYSeries((Comparable)((Object)"Random Data"));
-         series.add(1.0, 500.2);
-         series.add(5.0, 694.1);
-         series.add(4.0, 100.0);
-         series.add(12.5, 734.4);
-         series.add(17.3, 453.2);
-         series.add(21.2, 500.2);
-         series.add(21.9, null);
-         series.add(25.6, 734.4);
-         series.add(30.0, 453.2);
-         XYSeriesCollection data = new XYSeriesCollection(series);
-         JFreeChart chart = ChartFactory.createXYLineChart((String)"XY Series Demo", (String)"X", (String)"Y", (XYDataset)data, (PlotOrientation)PlotOrientation.VERTICAL, (boolean)true, (boolean)true, (boolean)false);
-         ChartPanel chartPanel = new ChartPanel(chart);
-         chartPanel.setPreferredSize(new Dimension(500, 270));
-         this.setContentPane((Container)chartPanel);
-         this.setResizable(false);
-         this.setUndecorated(true);
-         this.setDefaultCloseOperation(0);
-         JButton jb = new JButton("close");
-         jb.addActionListener(new ActionListener(){
- 
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 PATMain.this.dispose();
-             }
-         });
-         this.add((Component)jb, (Object)"First");
-         jb.setLocation(100, 100);
-     }
- 
-     public PATMain(int par1, int par2, int par3, String par4) {
-         super("TraceTest");
-         this.plaintextCol = par1;
-         this.extraColFront = par2;
-         this.extraColRear = par3;
-         this.cipher = par4;
-         LOGGER.info("Creating Trace object");
+     public PATMain() {
+        this.plaintextCol = 0;
+        this.extraColFront = 2;
+        this.extraColRear = 0;
+        this.cipher = "AES128";
+        LOGGER.info("Creating Trace object");
      }
  
      public void init(File fileName) throws IOException {
@@ -116,36 +71,6 @@
  
      public int getNumberOfTracePoints() {
          return this.numberOfTracePoints;
-     }
- 
-     public void plot(int traceNumber) throws IOException {
-         if (traceNumber < 1 || traceNumber > this.numberOfTracePoints) {
-             System.out.println("Error: Trace not found. Out of bounds.");
-         } else {
-             LOGGER.info("Starting plot");
-             String line = null;
-             int count = 0;
-             XYSeries series = new XYSeries((Comparable)((Object)"Power Traces"));
-             this.br = new BufferedReader(new FileReader(this.traceFile));
-             while (count++ < traceNumber - 1) {
-                 this.br.readLine();
-             }
-             line = this.br.readLine();
-             System.out.println(line);
-             String[] temp = line.split(",");
-             for (int x = 0; x < this.numberOfTracePoints; ++x) {
-                 series.add((double)x, Double.parseDouble(temp[x + 2]));
-             }
-             this.br.close();
-             XYSeriesCollection data = new XYSeriesCollection(series);
-             JFreeChart chart = ChartFactory.createXYLineChart((String)"Power Trace Plot", (String)"X", (String)"Y", (XYDataset)data, (PlotOrientation)PlotOrientation.VERTICAL, (boolean)true, (boolean)true, (boolean)false);
-             ChartPanel chartPanel = new ChartPanel(chart);
-             chartPanel.setPreferredSize(new Dimension(500, 270));
-             this.setContentPane((Container)chartPanel);
-             this.setResizable(false);
-             this.setUndecorated(true);
-             LOGGER.info("Plotting success!");
-         }
      }
  
      public void initTraceMatrix() throws IOException {
@@ -228,10 +153,12 @@
          double cov = sxy / (double)n - sx * sy / (double)n / (double)n;
          double sigmax = Math.sqrt(sxx / (double)n - sx * sx / (double)n / (double)n);
          double sigmay = Math.sqrt(syy / (double)n - sy * sy / (double)n / (double)n);
-
-         if((cov / sigmax / sigmay) < 0){
-             System.out.println("here")
+        
+         double correlationValue = cov / sigmax / sigmay;
+         if(correlationValue < 0){
+             System.out.println("here");
          }
+
          return cov / sigmax / sigmay;
      }
  
@@ -293,6 +220,17 @@
      }
  
      public static void main(String[] args) throws IOException {
+        PATMain ob = new PATMain();
+        File file = new File("input/waveform.csv");
+        ob.init(file);
+        HashMap<Object, Object> values = ob.CPA(16);
+        System.out.println("\n***********************************************\n");
+        System.out.println("Obtained key: " + values.get("key").toString() + "\n");
+        System.out.println("\n***********************************************\n");
+        System.out.println("Time taken: " + values.get("time").toString() + "second(s)\n");
+        System.out.println("\n");
+        System.out.println("choose another file or show/hide original traces");
+
      }
  
  }
