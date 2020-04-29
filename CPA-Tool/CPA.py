@@ -307,19 +307,17 @@ class CPA(object):
         start = time.process_time()
         # for i in range(1,2):
         for i in range(1,keysize + 1):
+            print(i)
             self.initHypothesis_MCU8_AES128(i)
             self.findCorrelation()
             self.key[i - 1] = self.findKey()
             print(self.key)
-            print(i)
 
         end = time.process_time()
         print("Analysis Complete.")
         timetaken = end - start
         strkey = ""
         t = ""
-        print("====")
-        print(self.key)
         for i in range(0,keysize):
             t = ('{:x}'.format(self.key[i]).upper() + " ")
             if len(t) < 3:
@@ -329,7 +327,7 @@ class CPA(object):
             print("t = " + t + " \t strkey = " + strkey)
         print(strkey.strip())
         print("Total Time: " + str(timetaken) + " seconds")
-        retVal = {"key": strkey, "time": timetaken}
+        retVal = {"key": strkey.strip(), "time": timetaken}
         return retVal
 
     # public HashMap<Object, Object> CPA(int keysize) throws IOException {

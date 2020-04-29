@@ -6,23 +6,23 @@ import difflib
 
 class TestCPA(unittest.TestCase):
 
-    # def testInitTestMatrix(self):
-    #     cpa = CPA()
-    #     cpa.initTraceMatrix()
+    def testInitTestMatrix(self):
+        cpa = CPA()
+        cpa.initTraceMatrix()
 
-    #     rowCount = 100
-    #     traceCount = 2500
+        rowCount = 100
+        traceCount = 2500
 
-    #     self.assertEqual(len(cpa.plainText), rowCount)
-    #     self.assertEqual(len(cpa.cipherText), rowCount)
-    #     self.assertEqual(len(cpa.traceMatrix), rowCount)
-    #     for row in cpa.traceMatrix:
-    #         self.assertEqual(len(row), traceCount)
-    #         self.assertEqual(type(row), list)
-    #         for col in row:
-    #             self.assertEqual(type(col), float)
-    #     self.assertEqual(cpa.numberOfTraces, rowCount)
-    #     self.assertEqual(cpa.numberOfTracesPoint, traceCount)
+        self.assertEqual(len(cpa.plainText), rowCount)
+        self.assertEqual(len(cpa.cipherText), rowCount)
+        self.assertEqual(len(cpa.traceMatrix), rowCount)
+        for row in cpa.traceMatrix:
+            self.assertEqual(len(row), traceCount)
+            self.assertEqual(type(row), list)
+            for col in row:
+                self.assertEqual(type(col), float)
+        self.assertEqual(cpa.numberOfTraces, rowCount)
+        self.assertEqual(cpa.numberOfTracesPoint, traceCount)
 
     def testCorrelation(self):
         cpa = CPA()
@@ -41,14 +41,10 @@ class TestCPA(unittest.TestCase):
             rowStringLength = rowStringLength - 8 # idk why its diff (Nan vs actual value) sx on java is 0.0
             self.assertEqual(testCaseString[0:rowStringLength] == rowString[0:rowStringLength], True)
 
-        
-        
-        
-
-    # def testWaveform(self):
-    #     cpa.initTraceMatrix()
-    #     print(cpa.cipherText)
-    #     self.assertEqual(results["key"], "78 A4 30 47 95 7D 4C 21 81 5D E6 72 0E AD 6F 41")
+    def testWaveform(self):
+        cpa = CPA()
+        results = cpa.CPA()
+        self.assertEqual(results["key"].strip(), "78 A4 30 47 95 7D 4C 21 81 5D E6 72 0E AD 6F 41")
 
     # def testWaveform2(self):
         # CPA.tracefile
