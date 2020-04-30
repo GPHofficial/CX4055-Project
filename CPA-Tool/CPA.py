@@ -2,6 +2,7 @@ import csv
 import time
 import os
 import math
+import json
 
 class CPA(object):
 
@@ -422,12 +423,19 @@ class CPA(object):
         self.initTraceMatrix()
         start = time.process_time()
         # for i in range(1,2):
+        self.assignment32 = []
+        
         for i in range(1,keysize + 1):
             self.initHypothesis_MCU8_AES128(i)
             print("Key " + str(i) + " of 16")
+            tempassignment = []
             for traceCount in range(10,101,10):
+                
                 self.findCorrelation32(results[i - 1],traceCount)
-                print("Trace " + str(traceCount) + ", Max Correlation: "+ str(self.findKey32(results[i - 1])))
+                maxcorrelation = str(self.findKey32(results[i - 1]))
+                print("Trace " + str(traceCount) + ", Max Correlation: "+ maxcorrelation)
+                tempassignment = tempassignment + [maxcorrelation]
+            self.assignment32.append(tempassignment)
         end = time.process_time()
         print("Analysis Complete.")
         # print(self.assignment32)
@@ -436,7 +444,7 @@ class CPA(object):
         t = ""
         print(strkey.strip())
         print("Total Time: " + str(timetaken) + " seconds")
-        retVal = {"key": strkey, "time": timetaken}
+        retVal = {"key": strkey, "time": timetaken, "assignment": self.assignment32}
         return retVal
 
 
@@ -503,10 +511,34 @@ class CPA(object):
 if __name__ == '__main__':
     CPAObject = CPA()
     # results = CPAObject.CPA31()
+    # with open('assignment31.json', 'w') as outfile:
+    #     json.dump(results, outfile)
+    # json.dumps(result) #["assignment"]
     # key = results["key"]
     key = [120, 164, 48, 71, 149, 125, 76, 33, 129, 93, 230, 114, 14, 173, 111, 65]
     results = CPAObject.CPA32(key)
 
+    with open('assignment32.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+        csvwriter.writerow(["Keypart","10","20","30","40","50","60","70","80","90","100"])
+        print(results)
+        csvwriter.writerow(["1"] + results["assignment"][0])
+        csvwriter.writerow(["2"] + results["assignment"][1])
+        csvwriter.writerow(["3"] + results["assignment"][2])
+        csvwriter.writerow(["4"] + results["assignment"][3])
+        csvwriter.writerow(["5"] + results["assignment"][4])
+        csvwriter.writerow(["6"] + results["assignment"][5])
+        csvwriter.writerow(["7"] + results["assignment"][6])
+        csvwriter.writerow(["8"] + results["assignment"][7])
+        csvwriter.writerow(["9"] + results["assignment"][8])
+        csvwriter.writerow(["10"] + results["assignment"][9])
+        csvwriter.writerow(["11"] + results["assignment"][10])
+        csvwriter.writerow(["12"] + results["assignment"][11])
+        csvwriter.writerow(["13"] + results["assignment"][12])
+        csvwriter.writerow(["14"] + results["assignment"][13])
+        csvwriter.writerow(["15"] + results["assignment"][14])
+        csvwriter.writerow(["16"] + results["assignment"][15])
 
 
 
