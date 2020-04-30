@@ -26,6 +26,42 @@ class CPA(object):
         self.traceMatrix = []
         self.hypothesis = []
         self.correlation = []
+        self.assignment31 = {
+            "1": [],
+            "2": [],
+            "3": [],
+            "4": [],
+            "5": [],
+            "6": [],
+            "7": [],
+            "8": [],
+            "9": [],
+            "10": [],
+            "11": [],
+            "12": [],
+            "13": [],
+            "14": [],
+            "15": [],
+            "16": [],
+        }
+        self.assignment32 = {
+            "1": [],
+            "2": [],
+            "3": [],
+            "4": [],
+            "5": [],
+            "6": [],
+            "7": [],
+            "8": [],
+            "9": [],
+            "10": [],
+            "11": [],
+            "12": [],
+            "13": [],
+            "14": [],
+            "15": [],
+            "16": [],
+        }
 
     def initTraceMatrix(self):
 
@@ -174,6 +210,38 @@ class CPA(object):
                 # rowCorrelation.append(self.Correlation(x,y))
             # self.correlation.append(rowCorrelation)
 
+    def findCorrelation32(self,result,traceCount):# = self.numberOfTraces
+
+        x = []
+        y = []
+        self.correlation = [[None for i in range(self.numberOfTracesPoint)] for j in range(256)]
+        temp = 0
+
+        count = result
+        y = []
+        rowCorrelation = []
+        for j in range(0,traceCount):
+            y.append(self.hypothesis[j][count] / 256.0)
+        for i in range(0,self.numberOfTracesPoint):
+            x = []
+            for j in range(0,traceCount):
+                x.append(self.traceMatrix[j][i])
+            
+
+            self.correlation[count][i] = self.Correlation(x, y)
+        
+
+    def findKey32(self,result):
+        max = self.correlation[result][0]
+        loc = 0
+        i = result
+        for j in range(0,self.numberOfTracesPoint):
+            if not (self.correlation[i][j] > max):
+                continue
+            max = self.correlation[i][j]
+            loc = i
+        return max
+
 
 
     # public void findCorrelation() {
@@ -248,8 +316,6 @@ class CPA(object):
             rowHypothesis = []
             P = self.plainText[i][2 * (byteNumber - 1): 2 * byteNumber]
             for j in range(0,len(keyHyp)):
-                # if j is 255:
-                #     print("hi")
                 temp1 = self.hex2int(P) ^ keyHyp[j]
                 temp2 = self.SBOX(temp1)
                 temp = self.HW(temp2)
@@ -281,6 +347,22 @@ class CPA(object):
                 max = self.correlation[i][j]
                 loc = i
         return loc
+    
+    def findKey31(self,keySet):
+        max = self.correlation[0][0]
+        loc = 0
+        for i in range(0,256):
+            localMaximum = self.correlation[i][0]
+            for j in range(0,self.numberOfTracesPoint):
+                if (self.correlation[i][j] >= localMaximum):
+                    localMaximum = self.correlation[i][j]
+
+                if not (self.correlation[i][j] > max):
+                    continue
+                max = self.correlation[i][j]
+                loc = i
+            self.assignment31[str(keySet)].append({str(i): localMaximum})
+        return loc
 
 
         # public int findKey() {
@@ -295,6 +377,67 @@ class CPA(object):
         #      }
         #      return loc;
         #  }
+
+
+    def CPA31(self):
+
+        keysize = CPA.keysize
+
+        self.key = [None] * keysize
+        print("Running Analysis...")
+        self.initTraceMatrix()
+        start = time.process_time()
+        # for i in range(1,2):
+        for i in range(1,keysize + 1):
+            self.initHypothesis_MCU8_AES128(i)
+            self.findCorrelation()
+            self.key[i - 1] = self.findKey31(i)
+            print(self.key)
+            print(i)
+
+        end = time.process_time()
+        print("Analysis Complete.")
+        timetaken = end - start
+        strkey = ""
+        t = ""
+        for i in range(0,keysize):
+            t = ('{:x}'.format(self.key[i]).upper() + " ")
+            if len(t) < 3:
+                strkey = strkey + "0" + t
+            else:
+                strkey = strkey + t
+            print("t = " + t + " \t strkey = " + strkey)
+        print(strkey.strip())
+        print("Total Time: " + str(timetaken) + " seconds")
+        retVal = {"key": self.key, "time": timetaken, "assignment": self.assignment31}
+        print(self.assignment31)
+        return retVal
+
+    def CPA32(self,results):
+
+        keysize = CPA.keysize
+
+        self.key = [None] * keysize
+        print("Running Analysis...")
+        self.initTraceMatrix()
+        start = time.process_time()
+        # for i in range(1,2):
+        for i in range(1,keysize + 1):
+            self.initHypothesis_MCU8_AES128(i)
+            print("Key " + str(i) + " of 16")
+            for traceCount in range(10,101,10):
+                self.findCorrelation32(results[i - 1],traceCount)
+                print("Trace " + str(traceCount) + ", Max Correlation: "+ str(self.findKey32(results[i - 1])))
+        end = time.process_time()
+        print("Analysis Complete.")
+        # print(self.assignment32)
+        timetaken = end - start
+        strkey = ""
+        t = ""
+        print(strkey.strip())
+        print("Total Time: " + str(timetaken) + " seconds")
+        retVal = {"key": strkey, "time": timetaken}
+        return retVal
 
 
     def CPA(self):
@@ -359,7 +502,10 @@ class CPA(object):
 
 if __name__ == '__main__':
     CPAObject = CPA()
-    CPAObject.CPA()
+    # results = CPAObject.CPA31()
+    # key = results["key"]
+    key = [120, 164, 48, 71, 149, 125, 76, 33, 129, 93, 230, 114, 14, 173, 111, 65]
+    results = CPAObject.CPA32(key)
 
 
 
